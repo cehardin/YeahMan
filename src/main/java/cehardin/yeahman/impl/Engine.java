@@ -1,15 +1,17 @@
 package cehardin.yeahman.impl;
 
-import cehardin.yeahman.ActorAddress;
-import cehardin.yeahman.ActorBehavior;
-import cehardin.yeahman.ActorBehaviorContext;
+import cehardin.yeahman.Address;
+import cehardin.yeahman.Behavior;
 import cehardin.yeahman.ActorCreator;
 import cehardin.yeahman.ActorDoesNotExistException;
 import cehardin.yeahman.ActorFactory;
-import cehardin.yeahman.ActorMessage;
-import cehardin.yeahman.ActorMessageSender;
-import cehardin.yeahman.ActorState;
+import cehardin.yeahman.Message;
+import cehardin.yeahman.MessageSender;
+import cehardin.yeahman.State;
 import cehardin.yeahman.ActorTypeDoesNotExistException;
+import java.util.Collections;
+import java.util.Map;
+import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Executor;
@@ -20,24 +22,26 @@ import java.util.concurrent.locks.ReentrantLock;
  *
  * @author Chad
  */
-public class Engine implements ActorCreator, ActorMessageSender {
-    private final ConcurrentMap<ActorAddress, ActorInstance> actorInstances = new ConcurrentHashMap<ActorAddress, ActorInstance>();
-    private final ConcurrentMap<String, ActorFactory> actorFactories = new ConcurrentHashMap<String, ActorFactory>();
+public class Engine implements ActorCreator, MessageSender {
+    private final Map<UUIDAddress, ActorInstance> actorInstances;
+    private final ConcurrentMap<String, ActorFactory> actorFactories;
     private final Executor executor;
-
+    
     public Engine(final Executor executor) {
         this.executor = executor;
+        actorInstances = Collections.synchronizedMap(new WeakHashMap<UUIDAddress, ActorInstance>());
+        actorFactories = new ConcurrentHashMap<String, ActorFactory>();
     }
     
-    public ActorAddress createActor(final String type) {
+    public Address createActor(final String type) {
         final ActorFactory factory = actorFactories.get(type);
         
         if(factory != null) {
-            final ActorState state = factory.createState();
-            final ActorBehavior behavior = factory.createBehavior();
+            final State state = factory.createState();
+            final Behavior behavior = factory.createBehavior();
             final Lock lock = new ReentrantLock();
             final ActorInstance actor = new ActorInstance(state, behavior, lock);
-            final ActorAddress address = new ActorAddressImpl();
+            final UUIDAddress address = new UUIDAddress();
             
             actorInstances.put(address, actor);
             return address;
@@ -50,11 +54,11 @@ public class Engine implements ActorCreator, ActorMessageSender {
         return actorFactories.put(type, actorFactory) != null;
     }
 
-    public void sendMessage(final ActorAddress address, final ActorMessage message) {
-        final ActorInstance actor = actorInstances.get(address);
+    public void sendMessage(final Address address, final Message message) {
+        final ActorInstance actor = actorInstances.get(UUIDAddress.class.cast(address));
         
         if(actor != null) {
-            final ActorBehaviorContext behaviorContext = new ActorBehaviorContextImpl(address, actor.getState(), message.clone(), this, this);
+            final Behavior.Context behaviorContext = new ActorBehaviorContextImpl(address, actor.getState(), message.clone(), this, this);
             final ActorProcessor actorProcessor = new ActorProcessor(actor, behaviorContext);
             
             executor.execute(actorProcessor);
@@ -66,16 +70,16 @@ public class Engine implements ActorCreator, ActorMessageSender {
     
     private static class ActorProcessor implements Runnable {
         private final ActorInstance actor;
-        private final ActorBehaviorContext behaviorContext;
+        private final Behavior.Context behaviorContext;
 
-        public ActorProcessor(final ActorInstance actor, final ActorBehaviorContext behaviorContext) {
+        public ActorProcessor(final ActorInstance actor, final Behavior.Context behaviorContext) {
             this.actor = actor;
             this.behaviorContext = behaviorContext;
         }
 
         public void run() {
             final Lock lock = actor.getLock();
-            final ActorBehavior behavior = actor.getBehavior();
+            final Behavior behavior = actor.getBehavior();
             
             if(lock.tryLock()) {
                 try {

@@ -4,7 +4,7 @@ package cehardin.yeahman;
  *
  * @author Chad
  */
-public interface ActorFactory<S extends ActorState, M extends ActorMessage> {
+public interface ActorFactory<S extends State, M extends Message> {
     S createState();
-    ActorBehavior<S, M> createBehavior();
+    Behavior<S, M> createBehavior();
 }

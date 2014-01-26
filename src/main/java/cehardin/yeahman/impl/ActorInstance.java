@@ -1,7 +1,7 @@
 package cehardin.yeahman.impl;
 
-import cehardin.yeahman.ActorBehavior;
-import cehardin.yeahman.ActorState;
+import cehardin.yeahman.Behavior;
+import cehardin.yeahman.State;
 import java.util.concurrent.locks.Lock;
 
 /**
@@ -9,21 +9,21 @@ import java.util.concurrent.locks.Lock;
  * @author Chad
  */
 public class ActorInstance {
-    private final ActorState state;
-    private final ActorBehavior behavior;
+    private final State state;
+    private final Behavior behavior;
     private final Lock lock;
 
-    public ActorInstance(ActorState state, ActorBehavior behavior, Lock lock) {
+    public ActorInstance(State state, Behavior behavior, Lock lock) {
         this.state = state;
         this.behavior = behavior;
         this.lock = lock;
     }
 
-    public ActorState getState() {
+    public State getState() {
         return state;
     }
 
-    public ActorBehavior getBehavior() {
+    public Behavior getBehavior() {
         return behavior;
     }
 

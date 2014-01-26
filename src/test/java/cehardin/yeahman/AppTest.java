@@ -40,7 +40,7 @@ public class AppTest
         final int numProcessors = runtime.availableProcessors();
         final ExecutorService executorService = Executors.newFixedThreadPool(numProcessors);   
         final Engine engine = new Engine(executorService);
-        final ActorAddress hello1, hello2;
+        final Address hello1, hello2;
         
         engine.addActorFactory("hello", new HelloActor.Factory());
         

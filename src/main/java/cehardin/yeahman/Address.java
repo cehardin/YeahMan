@@ -4,5 +4,5 @@ package cehardin.yeahman;
  *
  * @author Chad
  */
-public interface ActorAddress {
+public interface Address {
 }

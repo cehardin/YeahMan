@@ -11,30 +11,30 @@ package cehardin.yeahman;
  * @author Chad
  */
 public class HelloActor {
-    public static class State implements ActorState {
+    public static class State implements State {
         public long n;
     }
     
-    public static class Hello implements ActorMessage {
-        private final ActorAddress from;
+    public static class Hello implements Message {
+        private final Address from;
 
-        public Hello(ActorAddress from) {
+        public Hello(Address from) {
             this.from = from;
         }
 
-        public ActorAddress getFrom() {
+        public Address getFrom() {
             return from;
         }
 
-        public ActorMessage clone() {
+        public Message clone() {
             return this;    
         }
         
     }
     
-    public static class Behavior implements ActorBehavior<State, Hello> {
+    public static class Behavior implements Behavior<State, Hello> {
 
-        public void behave(ActorBehaviorContext<State, Hello> context) {
+        public void behave(BehaviorContext<State, Hello> context) {
             System.out.printf("I'm %s and I just got a hello from %s%n", context.getAddress(), context.getMessage().getFrom());
             context.getState().n++;
             context.getMessageSender().sendMessage(context.getMessage().getFrom(), new Hello(context.getAddress()));
@@ -48,7 +48,7 @@ public class HelloActor {
             return new State();
         }
 
-        public ActorBehavior<State, Hello> createBehavior() {
+        public Behavior<State, Hello> createBehavior() {
             return new Behavior();
         }
         

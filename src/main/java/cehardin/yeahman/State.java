@@ -4,6 +4,6 @@ package cehardin.yeahman;
  *
  * @author Chad
  */
-public interface ActorState {
+public interface State {
     
 }
