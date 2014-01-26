@@ -21,7 +21,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * @author Chad
  */
 public class Engine implements ActorCreator, ActorMessageSender {
-    private final ConcurrentMap<ActorAddress, Actor> actors = new ConcurrentHashMap<ActorAddress, Actor>();
+    private final ConcurrentMap<ActorAddress, ActorInstance> actorInstances = new ConcurrentHashMap<ActorAddress, ActorInstance>();
     private final ConcurrentMap<String, ActorFactory> actorFactories = new ConcurrentHashMap<String, ActorFactory>();
     private final Executor executor;
 
@@ -36,10 +36,10 @@ public class Engine implements ActorCreator, ActorMessageSender {
             final ActorState state = factory.createState();
             final ActorBehavior behavior = factory.createBehavior();
             final Lock lock = new ReentrantLock();
-            final Actor actor = new Actor(state, behavior, lock);
+            final ActorInstance actor = new ActorInstance(state, behavior, lock);
             final ActorAddress address = new ActorAddressImpl();
             
-            actors.put(address, actor);
+            actorInstances.put(address, actor);
             return address;
         }
         
@@ -51,10 +51,10 @@ public class Engine implements ActorCreator, ActorMessageSender {
     }
 
     public void sendMessage(final ActorAddress address, final ActorMessage message) {
-        final Actor actor = actors.get(address);
+        final ActorInstance actor = actorInstances.get(address);
         
         if(actor != null) {
-            final ActorBehaviorContext behaviorContext = new ActorBehaviorContextImpl(address, actor.getState(), message.clone(), this);
+            final ActorBehaviorContext behaviorContext = new ActorBehaviorContextImpl(address, actor.getState(), message.clone(), this, this);
             final ActorProcessor actorProcessor = new ActorProcessor(actor, behaviorContext);
             
             executor.execute(actorProcessor);
@@ -65,10 +65,10 @@ public class Engine implements ActorCreator, ActorMessageSender {
     }
     
     private static class ActorProcessor implements Runnable {
-        private final Actor actor;
+        private final ActorInstance actor;
         private final ActorBehaviorContext behaviorContext;
 
-        public ActorProcessor(final Actor actor, final ActorBehaviorContext behaviorContext) {
+        public ActorProcessor(final ActorInstance actor, final ActorBehaviorContext behaviorContext) {
             this.actor = actor;
             this.behaviorContext = behaviorContext;
         }

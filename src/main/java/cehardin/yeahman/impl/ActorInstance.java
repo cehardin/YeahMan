@@ -8,12 +8,12 @@ import java.util.concurrent.locks.Lock;
  *
  * @author Chad
  */
-public class Actor {
+public class ActorInstance {
     private final ActorState state;
     private final ActorBehavior behavior;
     private final Lock lock;
 
-    public Actor(ActorState state, ActorBehavior behavior, Lock lock) {
+    public ActorInstance(ActorState state, ActorBehavior behavior, Lock lock) {
         this.state = state;
         this.behavior = behavior;
         this.lock = lock;

@@ -9,5 +9,6 @@ public interface ActorBehaviorContext<S extends ActorState, M extends ActorMessa
     S getState();
     M getMessage();
     ActorMessageSender getMessageSender();
+    ActorCreator getCreator();
     
 }
